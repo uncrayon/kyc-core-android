@@ -1,0 +1,17 @@
+thresholds:
+  pad: 0.65
+  pad_texture: 0.7
+  pad_temporal: 0.6
+  pad_rppg: 0.5
+  replay: 0.4
+  facematch: 0.35
+  doc_liveness: 0.6
+
+weights:
+  pad: 1.0
+  pad_texture: 0.4
+  pad_temporal: 0.4
+  pad_rppg: 0.2
+  replay: 1.0
+  facematch: 1.0
+  doc_liveness: 1.0

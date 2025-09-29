@@ -1,0 +1,107 @@
+{
+  "info": {
+    "name": "KYC Processing API",
+    "description": "Postman collection for KYC video processing API endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Ingest Videos",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "selfie",
+              "type": "file",
+              "src": []
+            },
+            {
+              "key": "id_video",
+              "type": "file",
+              "src": []
+            },
+            {
+              "key": "selfie_hmac",
+              "type": "text",
+              "value": ""
+            },
+            {
+              "key": "selfie_sha256",
+              "type": "text",
+              "value": ""
+            },
+            {
+              "key": "id_hmac",
+              "type": "text",
+              "value": ""
+            },
+            {
+              "key": "id_sha256",
+              "type": "text",
+              "value": ""
+            }
+          ]
+        },
+        "url": {
+          "raw": "http://localhost:8000/ingest",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8000",
+          "path": [
+            "ingest"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get Processing Status",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8000/status/{{session_id}}",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8000",
+          "path": [
+            "status",
+            "{{session_id}}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get Processing Results",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8000/results/{{session_id}}",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8000",
+          "path": [
+            "results",
+            "{{session_id}}"
+          ]
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "session_id",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}

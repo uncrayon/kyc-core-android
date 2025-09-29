@@ -1,0 +1,31 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'api'
+    static_configs:
+      - targets: ['api:8000']
+
+  - job_name: 'pad_svc'
+    static_configs:
+      - targets: ['pad_svc:8000']
+
+  - job_name: 'deepfake_svc'
+    static_configs:
+      - targets: ['deepfake_svc:8000']
+
+  - job_name: 'facematch_svc'
+    static_configs:
+      - targets: ['facematch_svc:8000']
+
+  - job_name: 'mrz_svc'
+    static_configs:
+      - targets: ['mrz_svc:8000']
+
+  - job_name: 'ocr_svc'
+    static_configs:
+      - targets: ['ocr_svc:8000']
+
+  - job_name: 'doclive_svc'
+    static_configs:
+      - targets: ['doclive_svc:8000']

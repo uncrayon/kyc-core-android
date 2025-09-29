@@ -1,0 +1,133 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: kyc_db
+      POSTGRES_USER: kyc_user
+      POSTGRES_PASSWORD: kyc_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - kyc_network
+
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+    networks:
+      - kyc_network
+
+  api:
+    build: ./api
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - redis
+    networks:
+      - kyc_network
+
+  worker:
+    build: ./worker
+    depends_on:
+      - redis
+      - db
+    networks:
+      - kyc_network
+
+  storage:
+    image: minio/minio
+    command: server /data --console-address ":9001"
+    ports:
+      - "9002:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    volumes:
+      - minio_data:/data
+    networks:
+      - kyc_network
+
+  pad_svc:
+    build: ./pad_svc
+    ports:
+      - "8001:8000"
+    networks:
+      - kyc_network
+
+  deepfake_svc:
+    build: ./deepfake_svc
+    ports:
+      - "8002:8000"
+    networks:
+      - kyc_network
+
+  facematch_svc:
+    build: ./facematch_svc
+    ports:
+      - "8003:8000"
+    networks:
+      - kyc_network
+
+  ocr_svc:
+    build: ./ocr_svc
+    ports:
+      - "8004:8000"
+    networks:
+      - kyc_network
+
+  mrz_svc:
+    build: ./mrz_svc
+    ports:
+      - "8005:8000"
+    networks:
+      - kyc_network
+
+  doclive_svc:
+    build: ./doclive_svc
+    ports:
+      - "8006:8000"
+    networks:
+      - kyc_network
+
+  prometheus:
+    image: prom/prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - kyc_network
+
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards
+    networks:
+      - kyc_network
+
+  sentry:
+    image: getsentry/sentry:latest
+    ports:
+      - "9003:9000"
+    environment:
+      SENTRY_SECRET_KEY: 'your-secret-key'
+    networks:
+      - kyc_network
+
+volumes:
+  db_data:
+  minio_data:
+
+networks:
+  kyc_network:

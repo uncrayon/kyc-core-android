@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">POC KYC</string>
+    <string name="start_capture">Start Capture</string>
+    <string name="next">Next</string>
+    <string name="retry">Retry</string>
+    <string name="face_guide">Position your face in the frame and follow the instructions.</string>
+    <string name="blink_prompt">Blink your eyes.</string>
+    <string name="head_turn">Turn your head slowly to the side.</string>
+    <string name="id_guide">Position your ID in the frame.</string>
+    <string name="blur_retry">Image is blurry. Please try again.</string>
+    <string name="uploading">Uploading...</string>
+    <string name="recording">Recording...</string>
+    <string name="done">Capture Complete</string>
+    <string name="review_prechecks">Reviewing...</string>
+</resources>

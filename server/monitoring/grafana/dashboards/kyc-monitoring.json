@@ -1,0 +1,101 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "KYC System Monitoring",
+    "tags": ["kyc", "monitoring"],
+    "timezone": "browser",
+    "panels": [
+      {
+        "id": 1,
+        "title": "PAD Score Distribution",
+        "type": "histogram",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.5, sum(rate(pad_score_bucket[5m])) by (le))",
+            "legendFormat": "PAD Scores"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0}
+      },
+      {
+        "id": 2,
+        "title": "Replay Detection Scores",
+        "type": "histogram",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.5, sum(rate(replay_score_bucket[5m])) by (le))",
+            "legendFormat": "Replay Scores"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0}
+      },
+      {
+        "id": 3,
+        "title": "Face Match ROC",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(face_match_tpr[5m])",
+            "legendFormat": "TPR"
+          },
+          {
+            "expr": "rate(face_match_fpr[5m])",
+            "legendFormat": "FPR"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8}
+      },
+      {
+        "id": 4,
+        "title": "MRZ Success Rate",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "rate(mrz_success_total[5m]) / rate(mrz_total[5m]) * 100",
+            "legendFormat": "MRZ Success %"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 6, "x": 12, "y": 8}
+      },
+      {
+        "id": 5,
+        "title": "System Latency",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, service))",
+            "legendFormat": "{{service}} p95 latency"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 16}
+      },
+      {
+        "id": 6,
+        "title": "Error Rates",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(http_requests_total{status=~\"5..\"}[5m]) / rate(http_requests_total[5m]) * 100",
+            "legendFormat": "{{service}} 5xx rate"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 16}
+      }
+    ],
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "timepicker": {},
+    "templating": {
+      "list": []
+    },
+    "annotations": {
+      "list": []
+    },
+    "refresh": "5s",
+    "schemaVersion": 27,
+    "version": 0,
+    "links": []
+  }
+}

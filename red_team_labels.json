@@ -1,0 +1,299 @@
+{
+  "description": "Red Team Dataset Labels for 80 videos with attack types and expected results",
+  "total_videos": 80,
+  "attack_types": {
+    "print_attack": {
+      "description": "Printed photo or document attack",
+      "count": 20,
+      "variations": ["photo_print", "document_print", "high_quality_print", "low_quality_print"],
+      "expected_results": {
+        "pad_score": "< 0.5",
+        "deepfake_score": "< 0.5",
+        "face_match_passed": false,
+        "doc_liveness_passed": false,
+        "overall_decision": "reject"
+      }
+    },
+    "replay_attack": {
+      "description": "Screen or video replay attack",
+      "count": 20,
+      "variations": ["screen_replay", "video_replay", "looped_replay", "compressed_replay"],
+      "expected_results": {
+        "pad_score": "< 0.5",
+        "deepfake_score": "< 0.5",
+        "face_match_passed": false,
+        "doc_liveness_passed": false,
+        "overall_decision": "reject"
+      }
+    },
+    "mask_attack": {
+      "description": "Face mask or covering attack",
+      "count": 15,
+      "variations": ["surgical_mask", "n95_mask", "cloth_mask", "face_paint", "prosthetic_mask"],
+      "expected_results": {
+        "pad_score": "< 0.5",
+        "deepfake_score": "< 0.5",
+        "face_match_passed": false,
+        "doc_liveness_passed": false,
+        "overall_decision": "reject"
+      }
+    },
+    "fake_document": {
+      "description": "Forged or manipulated document",
+      "count": 15,
+      "variations": ["photoshopped_id", "scanned_fake", "tampered_mrz", "wrong_template"],
+      "expected_results": {
+        "pad_score": "< 0.5",
+        "deepfake_score": "< 0.5",
+        "face_match_passed": false,
+        "doc_liveness_passed": false,
+        "overall_decision": "reject"
+      }
+    },
+    "deepfake": {
+      "description": "AI-generated deepfake video",
+      "count": 10,
+      "variations": ["face_swap", "expression_manip", "voice_sync", "full_deepfake"],
+      "expected_results": {
+        "pad_score": "< 0.5",
+        "deepfake_score": "< 0.5",
+        "face_match_passed": false,
+        "doc_liveness_passed": false,
+        "overall_decision": "reject"
+      }
+    }
+  },
+  "videos": [
+    {
+      "video_id": "print_attack_photo_print_001",
+      "attack_type": "print_attack",
+      "variation": "photo_print",
+      "expected_pad_score": 0.2,
+      "expected_deepfake_score": 0.1,
+      "expected_face_match_cosine": 0.3,
+      "expected_doc_liveness_score": 0.2,
+      "expected_overall_risk": 0.85,
+      "expected_decision": "reject"
+    },
+    {
+      "video_id": "print_attack_document_print_002",
+      "attack_type": "print_attack",
+      "variation": "document_print",
+      "expected_pad_score": 0.15,
+      "expected_deepfake_score": 0.05,
+      "expected_face_match_cosine": 0.4,
+      "expected_doc_liveness_score": 0.1,
+      "expected_overall_risk": 0.9,
+      "expected_decision": "reject"
+    },
+    {
+      "video_id": "print_attack_high_quality_print_003",
+      "attack_type": "print_attack",
+      "variation": "high_quality_print",
+      "expected_pad_score": 0.3,
+      "expected_deepfake_score": 0.2,
+      "expected_face_match_cosine": 0.5,
+      "expected_doc_liveness_score": 0.3,
+      "expected_overall_risk": 0.75,
+      "expected_decision": "reject"
+    },
+    {
+      "video_id": "print_attack_low_quality_print_004",
+      "attack_type": "print_attack",
+      "variation": "low_quality_print",
+      "expected_pad_score": 0.1,
+      "expected_deepfake_score": 0.0,
+      "expected_face_match_cosine": 0.2,
+      "expected_doc_liveness_score": 0.0,
+      "expected_overall_risk": 0.95,
+      "expected_decision": "reject"
+    },
+    {
+      "video_id": "replay_attack_screen_replay_005",
+      "attack_type": "replay_attack",
+      "variation": "screen_replay",
+      "expected_pad_score": 0.25,
+      "expected_deepfake_score": 0.15,
+      "expected_face_match_cosine": 0.35,
+      "expected_doc_liveness_score": 0.25,
+      "expected_overall_risk": 0.8,
+      "expected_decision": "reject"
+    },
+    {
+      "video_id": "replay_attack_video_replay_006",
+      "attack_type": "replay_attack",
+      "variation": "video_replay",
+      "expected_pad_score": 0.2,
+      "expected_deepfake_score": 0.1,
+      "expected_face_match_cosine": 0.3,
+      "expected_doc_liveness_score": 0.2,
+      "expected_overall_risk": 0.85,
+      "expected_decision": "reject"
+    },
+    {
+      "video_id": "replay_attack_looped_replay_007",
+      "attack_type": "replay_attack",
+      "variation": "looped_replay",
+      "expected_pad_score": 0.18,
+      "expected_deepfake_score": 0.08,
+      "expected_face_match_cosine": 0.28,
+      "expected_doc_liveness_score": 0.18,
+      "expected_overall_risk": 0.87,
+      "expected_decision": "reject"
+    },
+    {
+      "video_id": "replay_attack_compressed_replay_008",
+      "attack_type": "replay_attack",
+      "variation": "compressed_replay",
+      "expected_pad_score": 0.22,
+      "expected_deepfake_score": 0.12,
+      "expected_face_match_cosine": 0.32,
+      "expected_doc_liveness_score": 0.22,
+      "expected_overall_risk": 0.83,
+      "expected_decision": "reject"
+    },
+    {
+      "video_id": "mask_attack_surgical_mask_009",
+      "attack_type": "mask_attack",
+      "variation": "surgical_mask",
+      "expected_pad_score": 0.4,
+      "expected_deepfake_score": 0.3,
+      "expected_face_match_cosine": 0.6,
+      "expected_doc_liveness_score": 0.4,
+      "expected_overall_risk": 0.7,
+      "expected_decision": "reject"
+    },
+    {
+      "video_id": "mask_attack_n95_mask_010",
+      "attack_type": "mask_attack",
+      "variation": "n95_mask",
+      "expected_pad_score": 0.35,
+      "expected_deepfake_score": 0.25,
+      "expected_face_match_cosine": 0.55,
+      "expected_doc_liveness_score": 0.35,
+      "expected_overall_risk": 0.75,
+      "expected_decision": "reject"
+    },
+    {
+      "video_id": "mask_attack_cloth_mask_011",
+      "attack_type": "mask_attack",
+      "variation": "cloth_mask",
+      "expected_pad_score": 0.38,
+      "expected_deepfake_score": 0.28,
+      "expected_face_match_cosine": 0.58,
+      "expected_doc_liveness_score": 0.38,
+      "expected_overall_risk": 0.72,
+      "expected_decision": "reject"
+    },
+    {
+      "video_id": "mask_attack_face_paint_012",
+      "attack_type": "mask_attack",
+      "variation": "face_paint",
+      "expected_pad_score": 0.45,
+      "expected_deepfake_score": 0.35,
+      "expected_face_match_cosine": 0.65,
+      "expected_doc_liveness_score": 0.45,
+      "expected_overall_risk": 0.65,
+      "expected_decision": "reject"
+    },
+    {
+      "video_id": "mask_attack_prosthetic_mask_013",
+      "attack_type": "mask_attack",
+      "variation": "prosthetic_mask",
+      "expected_pad_score": 0.3,
+      "expected_deepfake_score": 0.2,
+      "expected_face_match_cosine": 0.5,
+      "expected_doc_liveness_score": 0.3,
+      "expected_overall_risk": 0.8,
+      "expected_decision": "reject"
+    },
+    {
+      "video_id": "fake_document_photoshopped_id_014",
+      "attack_type": "fake_document",
+      "variation": "photoshopped_id",
+      "expected_pad_score": 0.1,
+      "expected_deepfake_score": 0.0,
+      "expected_face_match_cosine": 0.2,
+      "expected_doc_liveness_score": 0.0,
+      "expected_overall_risk": 0.95,
+      "expected_decision": "reject"
+    },
+    {
+      "video_id": "fake_document_scanned_fake_015",
+      "attack_type": "fake_document",
+      "variation": "scanned_fake",
+      "expected_pad_score": 0.05,
+      "expected_deepfake_score": 0.0,
+      "expected_face_match_cosine": 0.1,
+      "expected_doc_liveness_score": 0.0,
+      "expected_overall_risk": 0.98,
+      "expected_decision": "reject"
+    },
+    {
+      "video_id": "fake_document_tampered_mrz_016",
+      "attack_type": "fake_document",
+      "variation": "tampered_mrz",
+      "expected_pad_score": 0.08,
+      "expected_deepfake_score": 0.0,
+      "expected_face_match_cosine": 0.15,
+      "expected_doc_liveness_score": 0.0,
+      "expected_overall_risk": 0.97,
+      "expected_decision": "reject"
+    },
+    {
+      "video_id": "fake_document_wrong_template_017",
+      "attack_type": "fake_document",
+      "variation": "wrong_template",
+      "expected_pad_score": 0.12,
+      "expected_deepfake_score": 0.02,
+      "expected_face_match_cosine": 0.25,
+      "expected_doc_liveness_score": 0.05,
+      "expected_overall_risk": 0.93,
+      "expected_decision": "reject"
+    },
+    {
+      "video_id": "deepfake_face_swap_018",
+      "attack_type": "deepfake",
+      "variation": "face_swap",
+      "expected_pad_score": 0.4,
+      "expected_deepfake_score": 0.6,
+      "expected_face_match_cosine": 0.8,
+      "expected_doc_liveness_score": 0.4,
+      "expected_overall_risk": 0.6,
+      "expected_decision": "reject"
+    },
+    {
+      "video_id": "deepfake_expression_manip_019",
+      "attack_type": "deepfake",
+      "variation": "expression_manip",
+      "expected_pad_score": 0.35,
+      "expected_deepfake_score": 0.55,
+      "expected_face_match_cosine": 0.75,
+      "expected_doc_liveness_score": 0.35,
+      "expected_overall_risk": 0.65,
+      "expected_decision": "reject"
+    },
+    {
+      "video_id": "deepfake_voice_sync_020",
+      "attack_type": "deepfake",
+      "variation": "voice_sync",
+      "expected_pad_score": 0.3,
+      "expected_deepfake_score": 0.5,
+      "expected_face_match_cosine": 0.7,
+      "expected_doc_liveness_score": 0.3,
+      "expected_overall_risk": 0.7,
+      "expected_decision": "reject"
+    },
+    {
+      "video_id": "deepfake_full_deepfake_021",
+      "attack_type": "deepfake",
+      "variation": "full_deepfake",
+      "expected_pad_score": 0.45,
+      "expected_deepfake_score": 0.65,
+      "expected_face_match_cosine": 0.85,
+      "expected_doc_liveness_score": 0.45,
+      "expected_overall_risk": 0.55,
+      "expected_decision": "reject"
+    }
+  ]
+}

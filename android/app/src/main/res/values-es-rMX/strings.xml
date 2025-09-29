@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">POC KYC</string>
+    <string name="start_capture">Iniciar Captura</string>
+    <string name="next">Siguiente</string>
+    <string name="retry">Reintentar</string>
+    <string name="face_guide">Coloca tu rostro en el marco y sigue las instrucciones.</string>
+    <string name="blink_prompt">Parpadea los ojos.</string>
+    <string name="head_turn">Gira la cabeza lentamente hacia un lado.</string>
+    <string name="id_guide">Coloca tu identificación en el marco.</string>
+    <string name="blur_retry">La imagen está borrosa. Por favor, inténtalo de nuevo.</string>
+    <string name="uploading">Subiendo...</string>
+    <string name="recording">Grabando...</string>
+    <string name="done">Captura Completa</string>
+    <string name="review_prechecks">Revisando...</string>
+</resources>

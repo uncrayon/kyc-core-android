@@ -52,11 +52,11 @@ commercial purposes, subject to the terms below.
   third-party claims arising from Licensee's use of the Software.
 
 9. Governing Law
-- This Agreement shall be governed by the laws of [State/Country]. Parties
+- This Agreement shall be governed by the laws of Mexico City. Parties
   may change this to the appropriate jurisdiction.
 
 10. Contact and Ordering
-- To obtain a commercial license, contact: <your-email@example.com>
+- To obtain a commercial license, contact: uliarp15@gmail.com
 - Replace placeholders above with the appropriate information and have
   the document reviewed by legal counsel before use.
 

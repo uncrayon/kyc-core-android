@@ -71,4 +71,4 @@ This is a POC project. For contributions, refer to the documentation in the `doc
 
 ## License
 
-This project is licensed under the PolyForm Noncommercial v1.0.0 license. See the [LICENSE](LICENSE:1) file for the full text. Commercial use requires obtaining a separate paid license; see [COMMERCIAL_LICENSE_TEMPLATE.md](COMMERCIAL_LICENSE_TEMPLATE.md:1) or contact <your-email@example.com>.
+This project is licensed under the PolyForm Noncommercial v1.0.0 license. See the [LICENSE](LICENSE:1) file for the full text. Commercial use requires obtaining a separate paid license; see [COMMERCIAL_LICENSE_TEMPLATE.md](COMMERCIAL_LICENSE_TEMPLATE.md:1) or contact uliarp15@gmail.com.

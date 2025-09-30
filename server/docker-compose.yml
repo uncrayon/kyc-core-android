@@ -22,7 +22,9 @@ services:
       - kyc_network
 
   api:
-    build: ./api
+    build:
+      context: .
+      dockerfile: ./api/Dockerfile
     ports:
       - "8000:8000"
     depends_on:
@@ -124,6 +126,11 @@ services:
       - "9003:9000"
     environment:
       SENTRY_SECRET_KEY: 'your-secret-key'
+      SENTRY_REDIS_HOST: redis
+      SENTRY_POSTGRES_HOST: db
+      SENTRY_DB_NAME: kyc_db
+      SENTRY_DB_USER: kyc_user
+      SENTRY_DB_PASSWORD: kyc_password
     networks:
       - kyc_network
 

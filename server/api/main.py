@@ -22,8 +22,8 @@ except ModuleNotFoundError:  # pragma: no cover - optional dependency guard
 
 METRICS_ENABLED = Counter is not None
 
-from ..db.database import get_db
-from ..db.models import KycSession
+from db.database import get_db
+from db.models import KycSession
 
 app = FastAPI(title="KYC Processing API", version="1.0.0")
 

@@ -9,7 +9,7 @@ import yaml
 from sqlalchemy.orm import Session
 from datetime import datetime
 
-from celery_app import celery_app
+from .celery_app import celery_app
 from db.database import SessionLocal
 from db.models import (
     KycSession,

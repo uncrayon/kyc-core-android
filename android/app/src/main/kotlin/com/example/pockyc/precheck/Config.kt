@@ -5,5 +5,5 @@ object Config {
     var EXPOSURE_MIN = 60
     var EXPOSURE_MAX = 200
     var MOTION_MAX = 1.5
-    var FACE_STABILITY = 3.0
+    var FACE_STABILITY = 0.5
 }

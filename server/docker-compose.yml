@@ -32,7 +32,9 @@ services:
       - kyc_network
 
   worker:
-    build: ./worker
+    build:
+      context: .
+      dockerfile: ./worker/Dockerfile
     depends_on:
       - redis
       - db

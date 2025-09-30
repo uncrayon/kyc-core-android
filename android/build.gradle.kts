@@ -4,6 +4,6 @@ plugins {
     id("com.android.library") version "8.10.1" apply false
 }
 
-task<Delete>("clean") {
-    delete(rootProject.buildDir)
+tasks.register<Delete>("cleanAll") {
+    delete(rootProject.layout.buildDirectory.asFile)
 }

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+    <!-- Solid circle as a quick placeholder -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M54,12a42,42 0,1 1 0,84a42,42 0,1 1 0,-84z"/>
+</vector>

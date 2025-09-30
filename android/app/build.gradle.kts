@@ -36,8 +36,13 @@ android {
 }
 
 dependencies {
+    // Compose ↔ Lifecycle integrations (LocalLifecycleOwner, viewModel())
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
+    // Compose foundation (for Modifier.background, etc.)
+    implementation("androidx.compose.foundation:foundation")
     implementation("androidx.activity:activity-compose:1.8.2")
     implementation(platform("androidx.compose:compose-bom:2023.03.00"))
     implementation("androidx.compose.ui:ui")
@@ -59,13 +64,15 @@ dependencies {
     implementation("androidx.camera:camera-view:1.3.1")
     implementation("androidx.camera:camera-extensions:1.3.1")
     // MediaPipe
-    implementation("com.google.mediapipe:mediapipe:0.10.11")
+    implementation("com.google.mediapipe:tasks-vision:0.20230731")
     // OpenCV
-    implementation("org.opencv:opencv:4.8.0")
+    implementation("org.opencv:opencv:4.12.0")
     // WorkManager
     implementation("androidx.work:work-runtime-ktx:2.9.0")
     // Play Integrity
     implementation("com.google.android.play:integrity:1.3.0")
     // OkHttp for secure transport
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    // Material 
+    implementation("com.google.android.material:material:1.12.0")
 }

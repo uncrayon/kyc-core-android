@@ -1,5 +1,5 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException, Depends
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI, UploadFile, File, HTTPException, Depends, Request
+from fastapi.responses import JSONResponse, Response
 import uuid
 import os
 from datetime import datetime
@@ -10,11 +10,46 @@ import redis
 import json
 import jwt
 from sqlalchemy.orm import Session
+from prometheus_client import Counter, Histogram, CONTENT_TYPE_LATEST, generate_latest
+import time
 
 from ..db.database import get_db
 from ..db.models import KycSession
 
 app = FastAPI(title="KYC Processing API", version="1.0.0")
+
+
+REQUEST_LATENCY = Histogram(
+    "http_request_duration_seconds",
+    "HTTP request latency in seconds",
+    ["method", "path"],
+)
+
+
+REQUEST_COUNT = Counter(
+    "http_requests_total",
+    "Total HTTP requests",
+    ["method", "path", "status"],
+)
+
+
+@app.middleware("http")
+async def metrics_middleware(request: Request, call_next):
+    start_time = time.perf_counter()
+    response = await call_next(request)
+    process_time = time.perf_counter() - start_time
+    route = request.scope.get("route")
+    path = getattr(route, "path", request.url.path or "unknown")
+
+    REQUEST_LATENCY.labels(request.method, path).observe(process_time)
+    REQUEST_COUNT.labels(request.method, path, str(response.status_code)).inc()
+
+    return response
+
+
+@app.get("/metrics")
+async def metrics() -> Response:
+    return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 # JWT Secret
 JWT_SECRET = "your-secret-key"  # In production, use environment variable

@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import PlainTextResponse
 import random
 import json
 
@@ -66,6 +67,11 @@ async def parse_mrz(payload: dict):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"MRZ parsing failed: {str(e)}")
 
+
+
+@app.get("/metrics", response_class=PlainTextResponse)
+async def metrics():
+    return "# Metrics not implemented yet\n"
 @app.get("/health")
 async def health_check():
     return {"status": "healthy", "service": "mrz_svc"}

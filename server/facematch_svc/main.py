@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import PlainTextResponse
 import random
 import json
 
@@ -41,6 +42,11 @@ async def match_faces(payload: dict):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Face matching failed: {str(e)}")
 
+
+
+@app.get("/metrics", response_class=PlainTextResponse)
+async def metrics():
+    return "# Metrics not implemented yet\n"
 @app.get("/health")
 async def health_check():
     return {"status": "healthy", "service": "facematch_svc"}

@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import PlainTextResponse
 import random
 import json
 
@@ -45,6 +46,11 @@ async def extract_text(payload: dict):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"OCR extraction failed: {str(e)}")
 
+
+
+@app.get("/metrics", response_class=PlainTextResponse)
+async def metrics():
+    return "# Metrics not implemented yet\n"
 @app.get("/health")
 async def health_check():
     return {"status": "healthy", "service": "ocr_svc"}

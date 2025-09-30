@@ -10,10 +10,17 @@ from sqlalchemy.orm import Session
 from datetime import datetime
 
 from .celery_app import celery_app
-from ..db.database import SessionLocal
-from ..db.models import (
-    KycSession, FrameExtraction, PadResult, DeepfakeResult,
-    FaceMatchResult, OcrResult, MrzResult, DocLivenessResult, RiskScore
+from db.database import SessionLocal
+from db.models import (
+    KycSession,
+    FrameExtraction,
+    PadResult,
+    DeepfakeResult,
+    FaceMatchResult,
+    OcrResult,
+    MrzResult,
+    DocLivenessResult,
+    RiskScore,
 )
 
 # Load config

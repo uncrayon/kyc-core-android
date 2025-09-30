@@ -10,8 +10,17 @@ import redis
 import json
 import jwt
 from sqlalchemy.orm import Session
-from prometheus_client import Counter, Histogram, CONTENT_TYPE_LATEST, generate_latest
 import time
+
+try:
+    from prometheus_client import Counter, Histogram, CONTENT_TYPE_LATEST, generate_latest
+except ModuleNotFoundError:  # pragma: no cover - optional dependency guard
+    Counter = Histogram = None
+    CONTENT_TYPE_LATEST = "text/plain; charset=utf-8"
+    generate_latest = None
+
+
+METRICS_ENABLED = Counter is not None
 
 from ..db.database import get_db
 from ..db.models import KycSession
@@ -19,36 +28,42 @@ from ..db.models import KycSession
 app = FastAPI(title="KYC Processing API", version="1.0.0")
 
 
-REQUEST_LATENCY = Histogram(
-    "http_request_duration_seconds",
-    "HTTP request latency in seconds",
-    ["method", "path"],
-)
+if METRICS_ENABLED:
+    REQUEST_LATENCY = Histogram(
+        "http_request_duration_seconds",
+        "HTTP request latency in seconds",
+        ["method", "path"],
+    )
 
-
-REQUEST_COUNT = Counter(
-    "http_requests_total",
-    "Total HTTP requests",
-    ["method", "path", "status"],
-)
+    REQUEST_COUNT = Counter(
+        "http_requests_total",
+        "Total HTTP requests",
+        ["method", "path", "status"],
+    )
+else:
+    REQUEST_LATENCY = REQUEST_COUNT = None
 
 
 @app.middleware("http")
 async def metrics_middleware(request: Request, call_next):
     start_time = time.perf_counter()
     response = await call_next(request)
-    process_time = time.perf_counter() - start_time
-    route = request.scope.get("route")
-    path = getattr(route, "path", request.url.path or "unknown")
+    if METRICS_ENABLED:
+        process_time = time.perf_counter() - start_time
+        route = request.scope.get("route")
+        path = getattr(route, "path", request.url.path or "unknown")
 
-    REQUEST_LATENCY.labels(request.method, path).observe(process_time)
-    REQUEST_COUNT.labels(request.method, path, str(response.status_code)).inc()
+        REQUEST_LATENCY.labels(request.method, path).observe(process_time)
+        REQUEST_COUNT.labels(request.method, path, str(response.status_code)).inc()
 
     return response
 
 
 @app.get("/metrics")
 async def metrics() -> Response:
+    if not METRICS_ENABLED or generate_latest is None:
+        raise HTTPException(status_code=503, detail="Prometheus client library not installed")
+
     return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 # JWT Secret

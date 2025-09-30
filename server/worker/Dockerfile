@@ -14,9 +14,12 @@ RUN apt-get update && apt-get install -y \
     libgomp1 \
     && rm -rf /var/lib/apt/lists/*
 
-COPY worker/ .
+COPY worker/ /app/
+COPY db/ /app/db/
 
 # Copy config file
 COPY config.yaml /app/config.yaml
 
-CMD ["celery", "-A", "worker.celery_app", "worker", "--loglevel=info", "--queues=kyc_processing"]
+ENV PYTHONPATH=/app
+
+CMD ["celery", "-A", "celery_app", "worker", "--loglevel=info", "--queues=kyc_processing"]

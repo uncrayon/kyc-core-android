@@ -128,11 +128,18 @@ services:
       SENTRY_SECRET_KEY: 'your-secret-key'
       SENTRY_REDIS_HOST: redis
       SENTRY_POSTGRES_HOST: db
-      SENTRY_DB_NAME: kyc_db
+      SENTRY_DB_NAME: sentry_db
       SENTRY_DB_USER: kyc_user
       SENTRY_DB_PASSWORD: kyc_password
+    depends_on:
+      - db
+      - redis
     networks:
       - kyc_network
+    # NOTE: Sentry requires initialization before first use:
+    # 1. docker-compose exec db psql -U kyc_user -d postgres -c "CREATE DATABASE sentry_db;"
+    # 2. docker-compose run --rm sentry upgrade --noinput
+    # 3. docker-compose run --rm sentry createuser --email admin@example.com --password admin --superuser
 
 volumes:
   db_data:

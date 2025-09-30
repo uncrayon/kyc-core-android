@@ -1,5 +1,6 @@
 package com.example.pockyc.ui
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -10,11 +11,14 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.pockyc.R
 import com.example.pockyc.capture.CaptureState
 import com.example.pockyc.capture.CaptureViewModel
+import com.example.pockyc.capture.CameraManager
 import com.example.pockyc.capture.Challenge
+import java.io.File
 
 @Composable
 fun CaptureScreen(viewModel: CaptureViewModel = viewModel(), initialDebugMode: Boolean = false) {
@@ -105,9 +109,8 @@ fun GuideScreen(message: String, viewModel: CaptureViewModel) {
 fun RecordingScreen(challenge: Challenge?, viewModel: CaptureViewModel) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
-    val coroutineScope = rememberCoroutineScope()
 
-    val cameraManager = remember { CameraManager(context, lifecycleOwner, viewModel.precheckManager) }
+    val cameraManager = remember(context, lifecycleOwner) { CameraManager(context, lifecycleOwner, viewModel.precheckManager) }
 
     LaunchedEffect(Unit) {
         cameraManager.initializeCamera()
@@ -238,15 +241,15 @@ fun DebugPanel(viewModel: CaptureViewModel) {
 
         // FACE_STABILITY slider
         var faceStability by remember { mutableStateOf(com.example.pockyc.precheck.Config.FACE_STABILITY.toFloat()) }
-        Text("FACE_STABILITY: ${faceStability}")
+        Text(String.format("FACE_STABILITY: %.2f", faceStability))
         Slider(
             value = faceStability,
             onValueChange = {
                 faceStability = it
                 com.example.pockyc.precheck.Config.FACE_STABILITY = it.toDouble()
             },
-            valueRange = 1f..10f,
-            steps = 90
+            valueRange = 0f..1f,
+            steps = 9
         )
     }
 }

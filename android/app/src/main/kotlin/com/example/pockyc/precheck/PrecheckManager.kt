@@ -1,42 +1,32 @@
 package com.example.pockyc.precheck
 
+import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.RectF
 import com.google.mediapipe.framework.image.BitmapImageBuilder
 import com.google.mediapipe.tasks.core.BaseOptions
 import com.google.mediapipe.tasks.vision.core.RunningMode
 import com.google.mediapipe.tasks.vision.facedetector.FaceDetector
-import com.google.mediapipe.tasks.vision.facedetector.FaceDetectorResult
 import org.opencv.android.Utils
 import org.opencv.core.Core
 import org.opencv.core.CvType
 import org.opencv.core.Mat
+import org.opencv.core.MatOfDouble
 import org.opencv.core.MatOfPoint
 import org.opencv.core.MatOfPoint2f
-import org.opencv.core.Point
 import org.opencv.core.Rect
-import org.opencv.core.Scalar
 import org.opencv.core.Size
 import org.opencv.imgproc.Imgproc
-import kotlin.math.abs
+import org.opencv.video.Video
 import kotlin.math.max
 import kotlin.math.min
 
 class PrecheckManager {
 
-    private val faceDetector: FaceDetector
-    private var previousFrame: Mat? = null
+    @Volatile
+    private var faceDetector: FaceDetector? = null
+    private var previousFrameGray: Mat? = null
     private val frameResults = mutableListOf<FrameResult>()
-
-    init {
-        val baseOptions = BaseOptions.builder()
-            .setModelAssetPath("face_detection_short_range.tflite") // Assuming model is in assets
-            .build()
-        val options = FaceDetector.FaceDetectorOptions.builder()
-            .setBaseOptions(baseOptions)
-            .setRunningMode(RunningMode.IMAGE)
-            .build()
-        faceDetector = FaceDetector.createFromOptions(options)
-    }
 
     data class FrameResult(
         val blur: Double,
@@ -47,11 +37,11 @@ class PrecheckManager {
     )
 
     data class FaceInfo(
-        val landmarks: List<Point>,
-        val eyeAspectRatio: Double
+        val boundingBox: RectF,
+        val confidence: Double
     )
 
-    fun processFrame(bitmap: Bitmap): FrameResult {
+    fun processFrame(context: Context, bitmap: Bitmap): FrameResult {
         val mat = Mat()
         Utils.bitmapToMat(bitmap, mat)
 
@@ -59,12 +49,14 @@ class PrecheckManager {
         val exposure = calculateExposure(mat)
         val motion = calculateMotion(mat)
         val compression = calculateCompression(mat)
-        val faces = detectFaces(bitmap)
+        val faces = detectFaces(context, bitmap)
 
         val result = FrameResult(blur, exposure, motion, compression, faces)
         frameResults.add(result)
+        if (frameResults.size > 120) {
+            frameResults.removeAt(0)
+        }
 
-        previousFrame = mat.clone()
         return result
     }
 
@@ -73,8 +65,11 @@ class PrecheckManager {
         Imgproc.cvtColor(mat, gray, Imgproc.COLOR_BGR2GRAY)
         val laplacian = Mat()
         Imgproc.Laplacian(gray, laplacian, CvType.CV_64F)
-        val variance = Core.mean(Core.absdiff(laplacian, Scalar(0.0))).`val`[0]
-        return variance
+        val mean = MatOfDouble()
+        val stdDev = MatOfDouble()
+        Core.meanStdDev(laplacian, mean, stdDev)
+        val stdValue = stdDev.toArray().firstOrNull() ?: 0.0
+        return stdValue * stdValue
     }
 
     private fun calculateExposure(mat: Mat): Double {
@@ -85,59 +80,80 @@ class PrecheckManager {
     }
 
     private fun calculateMotion(mat: Mat): Double {
-        if (previousFrame == null) return 0.0
+        val gray = Mat()
+        Imgproc.cvtColor(mat, gray, Imgproc.COLOR_BGR2GRAY)
+        val prevGray = previousFrameGray ?: run {
+            previousFrameGray = gray
+            return 0.0
+        }
         val flow = Mat()
-        Imgproc.calcOpticalFlowFarneback(previousFrame, mat, flow, 0.5, 3, 15, 3, 5, 1.2, 0)
-        val meanFlow = Core.mean(flow)
-        return meanFlow.`val`[0] + meanFlow.`val`[1] // Sum of x and y
+        Video.calcOpticalFlowFarneback(prevGray, gray, flow, 0.5, 3, 15, 3, 5, 1.2, 0)
+        val flowChannels = mutableListOf<Mat>()
+        Core.split(flow, flowChannels)
+        val magnitude = Mat()
+        Core.magnitude(flowChannels[0], flowChannels[1], magnitude)
+        val meanMagnitude = Core.mean(magnitude)
+        flowChannels.forEach { it.release() }
+        magnitude.release()
+        flow.release()
+        prevGray.release()
+        previousFrameGray = gray
+        return meanMagnitude.`val`[0]
     }
 
     private fun calculateCompression(mat: Mat): Double {
         // Simple heuristic: check for block artifacts by looking at variance in small blocks
         val blockSize = 8
         var totalVariance = 0.0
-        val rows = mat.rows() / blockSize
-        val cols = mat.cols() / blockSize
+        val gray = Mat()
+        Imgproc.cvtColor(mat, gray, Imgproc.COLOR_BGR2GRAY)
+        val rows = gray.rows() / blockSize
+        val cols = gray.cols() / blockSize
+        if (rows == 0 || cols == 0) return 0.0
         for (i in 0 until rows) {
             for (j in 0 until cols) {
                 val roi = Rect(j * blockSize, i * blockSize, blockSize, blockSize)
-                val block = Mat(mat, roi)
-                val mean = Core.mean(block)
-                val variance = Core.mean(Core.absdiff(block, Scalar(mean.`val`[0], mean.`val`[1], mean.`val`[2]))).`val`[0]
-                totalVariance += variance
+                val block = Mat(gray, roi)
+                val mean = MatOfDouble()
+                val stdDev = MatOfDouble()
+                Core.meanStdDev(block, mean, stdDev)
+                val stdValue = stdDev.toArray().firstOrNull() ?: 0.0
+                totalVariance += stdValue * stdValue
             }
         }
         return totalVariance / (rows * cols)
     }
 
-    private fun detectFaces(bitmap: Bitmap): List<FaceInfo> {
+    private fun detectFaces(context: Context, bitmap: Bitmap): List<FaceInfo> {
+        val detector = ensureFaceDetector(context)
         val image = BitmapImageBuilder(bitmap).build()
-        val result = faceDetector.detect(image)
+        val result = detector.detect(image)
         return result.detections().map { detection ->
-            val landmarks = detection.landmarks().map { Point(it.x().toDouble(), it.y().toDouble()) }
-            val eyeAspectRatio = calculateEyeAspectRatio(landmarks)
-            FaceInfo(landmarks, eyeAspectRatio)
+            val boundingBox = RectF(detection.boundingBox())
+            val confidence = detection.categories().firstOrNull()?.score()?.toDouble() ?: 0.0
+            FaceInfo(boundingBox, confidence)
         }
     }
 
-    private fun calculateEyeAspectRatio(landmarks: List<Point>): Double {
-        if (landmarks.size < 6) return 0.0 // Assuming standard face landmarks
-        val leftEye = listOf(landmarks[0], landmarks[1], landmarks[2])
-        val rightEye = listOf(landmarks[3], landmarks[4], landmarks[5])
-        val leftRatio = eyeAspectRatio(leftEye)
-        val rightRatio = eyeAspectRatio(rightEye)
-        return (leftRatio + rightRatio) / 2.0
-    }
-
-    private fun eyeAspectRatio(eye: List<Point>): Double {
-        val a = distance(eye[1], eye[5])
-        val b = distance(eye[2], eye[4])
-        val c = distance(eye[0], eye[3])
-        return (a + b) / (2.0 * c)
-    }
-
-    private fun distance(p1: Point, p2: Point): Double {
-        return kotlin.math.sqrt((p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y))
+    private fun ensureFaceDetector(context: Context): FaceDetector {
+        val existing = faceDetector
+        if (existing != null) {
+            return existing
+        }
+        return synchronized(this) {
+            faceDetector ?: run {
+                val baseOptions = BaseOptions.builder()
+                    .setModelAssetPath("face_detection_short_range.tflite")
+                    .build()
+                val options = FaceDetector.FaceDetectorOptions.builder()
+                    .setBaseOptions(baseOptions)
+                    .setRunningMode(RunningMode.IMAGE)
+                    .build()
+                FaceDetector.createFromOptions(context.applicationContext, options).also {
+                    faceDetector = it
+                }
+            }
+        }
     }
 
     fun checkQualityGates(): Boolean {
@@ -158,10 +174,12 @@ class PrecheckManager {
 
     fun checkFacePresence(): Boolean {
         val totalFrames = frameResults.size
+        if (totalFrames == 0) return false
         val framesWithSingleFace = frameResults.count { it.faces.size == 1 }
         val facePresenceRatio = framesWithSingleFace.toDouble() / totalFrames
-        val avgStability = frameResults.flatMap { it.faces }.map { it.eyeAspectRatio }.average()
-        val stabilityPass = avgStability > 0.18
+        val faceConfidences = frameResults.flatMap { it.faces }.map { it.confidence }
+        val avgConfidence = if (faceConfidences.isNotEmpty()) faceConfidences.average() else 0.0
+        val stabilityPass = avgConfidence >= Config.FACE_STABILITY
 
         return facePresenceRatio >= 0.9 && stabilityPass
     }
@@ -210,6 +228,6 @@ class PrecheckManager {
 
     fun reset() {
         frameResults.clear()
-        previousFrame = null
+        previousFrameGray = null
     }
 }

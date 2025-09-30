@@ -15,9 +15,11 @@ import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManager
 import javax.net.ssl.X509TrustManager
 import java.security.cert.X509Certificate
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
+import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.IOException
 
 class TransportSecurityManager {
@@ -122,9 +124,10 @@ class TransportSecurityManager {
                 multipartBody.addFormDataPart(
                     "chunk_${chunk.chunkIndex}",
                     "chunk_${chunk.chunkIndex}.bin",
-                    okhttp3.RequestBody.create(okhttp3.MediaType.parse("application/octet-stream"), chunk.data)
-                ).addFormDataPart("hmac_${chunk.chunkIndex}", chunk.hmac)
-                .addFormDataPart("sha256_${chunk.chunkIndex}", chunk.sha256)
+                    chunk.data.toRequestBody("application/octet-stream".toMediaType())
+                )
+                    .addFormDataPart("hmac_${chunk.chunkIndex}", chunk.hmac)
+                    .addFormDataPart("sha256_${chunk.chunkIndex}", chunk.sha256)
             }
 
             val request = Request.Builder()
@@ -168,14 +171,14 @@ class TransportSecurityManager {
                 .addFormDataPart(
                     "selfie",
                     selfieFile.name,
-                    okhttp3.RequestBody.create(okhttp3.MediaType.parse("video/mp4"), selfieData)
+                    selfieData.toRequestBody("video/mp4".toMediaType())
                 )
                 .addFormDataPart("selfie_hmac", selfieHmac)
                 .addFormDataPart("selfie_sha256", selfieSha256)
                 .addFormDataPart(
                     "id_video",
                     idFile.name,
-                    okhttp3.RequestBody.create(okhttp3.MediaType.parse("video/mp4"), idData)
+                    idData.toRequestBody("video/mp4".toMediaType())
                 )
                 .addFormDataPart("id_hmac", idHmac)
                 .addFormDataPart("id_sha256", idSha256)
@@ -188,7 +191,7 @@ class TransportSecurityManager {
 
             val response: Response = client.newCall(request).execute()
             if (response.isSuccessful) {
-                val responseBody = response.body()?.string()
+                val responseBody = response.body?.string()
                 response.close()
                 responseBody
             } else {

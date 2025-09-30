@@ -21,18 +21,21 @@ class CameraManager(private val context: Context, private val lifecycleOwner: Li
     private var imageAnalysis: ImageAnalysis? = null
     private var recording: Recording? = null
     private var isRecording = false
+    private var pendingSurfaceProvider: Preview.SurfaceProvider? = null
 
     suspend fun initializeCamera(): ProcessCameraProvider {
         return suspendCoroutine { continuation ->
             val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
             cameraProviderFuture.addListener({
                 cameraProvider = cameraProviderFuture.get()
+                pendingSurfaceProvider?.let { startPreview(it) }
                 continuation.resume(cameraProvider!!)
             }, ContextCompat.getMainExecutor(context))
         }
     }
 
     fun startPreview(surfaceProvider: Preview.SurfaceProvider) {
+        pendingSurfaceProvider = surfaceProvider
         val cameraProvider = cameraProvider ?: return
         val cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA
 
@@ -52,7 +55,7 @@ class CameraManager(private val context: Context, private val lifecycleOwner: Li
                 it.setAnalyzer(ContextCompat.getMainExecutor(context)) { image ->
                     if (isRecording) {
                         val bitmap = image.toBitmap()
-                        precheckManager.processFrame(bitmap)
+                        precheckManager.processFrame(context, bitmap)
                     }
                     image.close()
                 }
@@ -70,6 +73,7 @@ class CameraManager(private val context: Context, private val lifecycleOwner: Li
         } catch (exc: Exception) {
             Log.e("CameraManager", "Use case binding failed", exc)
         }
+        pendingSurfaceProvider = null
     }
 
     fun startRecording(outputFile: File) {

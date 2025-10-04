@@ -1,0 +1,13 @@
+pytest
+httpx
+pytest-mock
+fastapi
+uvicorn
+python-multipart
+minio
+redis
+sqlalchemy
+psycopg2-binary
+aiofiles
+PyJWT
+prometheus-client

@@ -51,15 +51,95 @@ The system is divided into two main components:
 - Python 3.8+ for local development (if needed).
 
 ### Android App Setup
-1. Open the `android/` directory in Android Studio.
-2. Ensure Gradle wrapper is executable: `chmod +x gradlew`.
-3. Build and run the app on an Android device or emulator.
+
+This guide provides step-by-step instructions for setting up and running the Android application using Android Studio.
+
+**Prerequisites**
+- **Android Studio**: Make sure you have the latest version of Android Studio installed.
+- **Android SDK**: Ensure you have Android SDK Platform 29 (Android 10) or higher installed through the Android Studio SDK Manager.
+- **Emulator or Physical Device**: You will need an Android emulator set up in Android Studio or a physical Android device with developer mode enabled.
+
+**Step-by-Step Guide**
+
+1. **Open the Project in Android Studio**:
+   - Launch Android Studio.
+   - Select "Open an existing project".
+   - Navigate to the `android/` directory in the cloned repository and select it.
+
+2. **Sync Gradle**:
+   - After opening the project, Android Studio will automatically start syncing the Gradle files. Wait for this process to complete. If you get a "Gradle sync failed" error, check the "Build" tab for more details.
+
+3. **Ensure Gradle Wrapper is Executable** (For command-line builds):
+   - If you plan to build from the command line, you need to ensure the Gradle wrapper script is executable. Open a terminal, navigate to the `android/` directory, and run:
+     ```bash
+     chmod +x gradlew
+     ```
+
+4. **Build and Run the App**:
+   - **From Android Studio (Recommended)**:
+     - Select your target device (emulator or physical device) from the dropdown menu in the toolbar.
+     - Click the "Run" button (the green play icon) or use the shortcut `Shift + F10`. Android Studio will build and install the app on your selected device.
+   - **From the Command Line (Alternative)**:
+     - To build a debug APK, navigate to the `android/` directory and run:
+       ```bash
+       ./gradlew assembleDebug
+       ```
+     - To install the APK on a connected device, use `adb`:
+       ```bash
+       adb install app/build/outputs/apk/debug/app-debug.apk
+       ```
 
 ### Server Backend Setup
-1. Navigate to the `server/` directory.
-2. Run `docker-compose up` to start all services.
-3. Access the API at `http://localhost:8000` (default port).
-4. Monitoring dashboards available at `http://localhost:3000` (Grafana).
+
+This guide provides step-by-step instructions for setting up and running the server backend using Docker Compose.
+
+**Prerequisites**
+- **Docker**: Make sure you have Docker installed and running on your system.
+- **Docker Compose**: Ensure you have Docker Compose installed.
+
+**Step-by-Step Guide**
+
+1. **Navigate to the Server Directory**:
+   - Open a terminal and navigate to the `server/` directory in the cloned repository.
+
+2. **Run the Server Stack**:
+   - Use the `Makefile` for convenience. The `make run` command will build and start all the services in detached mode.
+     ```bash
+     make run
+     ```
+   - **Alternative (without Makefile)**: You can also use `docker-compose` directly.
+     ```bash
+     docker-compose up --build -d
+     ```
+
+3. **Verify the Services are Running**:
+   - You can check the status of the running containers using:
+     ```bash
+     docker-compose ps
+     ```
+   - You should see all the services (api, db, worker, etc.) in the "Up" state.
+
+4. **Access the API**:
+   - The API gateway is exposed on port 8000. You can access the API documentation at `http://localhost:8000/docs`.
+
+5. **Access the Monitoring Dashboards**:
+   - The Grafana dashboard is available at `http://localhost:3000`. You can log in with the default credentials (admin/admin) to view the monitoring dashboards.
+
+6. **Seed Red Team Data (Optional)**:
+   - For testing purposes, you can seed the database with red team data using the following command:
+     ```bash
+     make seed-red-team
+     ```
+
+7. **Stopping the Services**:
+   - To stop all the running services, you can use:
+     ```bash
+     make down
+     ```
+   - **Alternative (without Makefile)**:
+     ```bash
+     docker-compose down
+     ```
 
 ### Configuration
 - Server configuration is managed via `server/config.yaml`.

@@ -13,4 +13,5 @@
     <string name="recording">Recording...</string>
     <string name="done">Capture Complete</string>
     <string name="review_prechecks">Reviewing...</string>
+    <string name="camera_permission_denied">Camera permission denied. Please enable it in settings to continue.</string>
 </resources>

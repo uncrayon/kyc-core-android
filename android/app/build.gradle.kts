@@ -66,7 +66,7 @@ dependencies {
     // MediaPipe
     implementation("com.google.mediapipe:tasks-vision:0.20230731")
     // OpenCV
-    implementation("org.opencv:opencv:4.12.0")
+    implementation("com.quickbirdstudios:opencv:4.5.3")
     // WorkManager
     implementation("androidx.work:work-runtime-ktx:2.9.0")
     // Play Integrity

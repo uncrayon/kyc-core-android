@@ -3,10 +3,12 @@ package com.example.pockyc.precheck
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.RectF
+import android.util.Log
 import com.google.mediapipe.framework.image.BitmapImageBuilder
 import com.google.mediapipe.tasks.core.BaseOptions
 import com.google.mediapipe.tasks.vision.core.RunningMode
 import com.google.mediapipe.tasks.vision.facedetector.FaceDetector
+import org.opencv.android.OpenCVLoader
 import org.opencv.android.Utils
 import org.opencv.core.Core
 import org.opencv.core.CvType
@@ -42,6 +44,10 @@ class PrecheckManager {
     )
 
     fun processFrame(context: Context, bitmap: Bitmap): FrameResult {
+        if (!Companion.ensureOpenCvReady()) {
+            Log.e(TAG, "OpenCV not initialised; returning empty frame result")
+            return FrameResult(0.0, 0.0, 0.0, 0.0, emptyList())
+        }
         val mat = Mat()
         Utils.bitmapToMat(bitmap, mat)
 
@@ -229,5 +235,25 @@ class PrecheckManager {
     fun reset() {
         frameResults.clear()
         previousFrameGray = null
+    }
+
+    companion object {
+        private const val TAG = "PrecheckManager"
+
+        @Volatile
+        private var openCvReady = false
+
+        private fun ensureOpenCvReady(): Boolean {
+            if (openCvReady) return true
+            synchronized(this) {
+                if (!openCvReady) {
+                    openCvReady = OpenCVLoader.initDebug()
+                    if (!openCvReady) {
+                        Log.e(TAG, "Unable to load OpenCV native libraries")
+                    }
+                }
+            }
+            return openCvReady
+        }
     }
 }

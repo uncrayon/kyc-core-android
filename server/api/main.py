@@ -1,9 +1,12 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException, Depends, Request
+from fastapi import FastAPI, UploadFile, File, HTTPException, Depends, Request, Form
 from fastapi.responses import JSONResponse, Response
 import uuid
 import os
 from datetime import datetime
 import aiofiles
+import hmac
+import hashlib
+import base64
 from minio import Minio
 from minio.error import S3Error
 import redis
@@ -95,10 +98,10 @@ async def startup_event():
 async def ingest_videos(
     selfie: UploadFile = File(...),
     id_video: UploadFile = File(...),
-    selfie_hmac: str = None,
-    selfie_sha256: str = None,
-    id_hmac: str = None,
-    id_sha256: str = None,
+    selfie_hmac: str = Form(...),
+    selfie_sha256: str = Form(...),
+    id_hmac: str = Form(...),
+    id_sha256: str = Form(...),
     db: Session = Depends(get_db)
 ):
     """
@@ -109,50 +112,58 @@ async def ingest_videos(
         if not file.filename.lower().endswith(('.mp4', '.avi', '.mov', '.mkv')):
             raise HTTPException(status_code=400, detail="Invalid file format. Only video files are accepted.")
 
-    # Read file contents
-    selfie_content = await selfie.read()
-    id_content = await id_video.read()
-
-    # Verify HMAC and SHA256
-    import hmac
-    import hashlib
-    import base64
-
-    # For simplicity, use a shared secret (in production, use per-session key)
-    secret = b"shared_secret"
-
-    expected_selfie_hmac = base64.b64encode(hmac.new(secret, selfie_content, hashlib.sha256).digest()).decode()
-    expected_selfie_sha256 = base64.b64encode(hashlib.sha256(selfie_content).digest()).decode()
-
-    expected_id_hmac = base64.b64encode(hmac.new(secret, id_content, hashlib.sha256).digest()).decode()
-    expected_id_sha256 = base64.b64encode(hashlib.sha256(id_content).digest()).decode()
-
-    if selfie_hmac != expected_selfie_hmac or selfie_sha256 != expected_selfie_sha256:
-        raise HTTPException(status_code=400, detail="Selfie integrity verification failed")
-
-    if id_hmac != expected_id_hmac or id_sha256 != expected_id_sha256:
-        raise HTTPException(status_code=400, detail="ID video integrity verification failed")
-
     # Generate unique session ID
     session_id = str(uuid.uuid4())
+    secret = b"shared_secret"
+    selfie_temp_path = f"/tmp/{session_id}_selfie_{selfie.filename}"
+    id_temp_path = f"/tmp/{session_id}_id_{id_video.filename}"
 
-    # Create KYC session in database
-    kyc_session = KycSession(
-        session_id=session_id,
-        selfie_video_path="",  # Will be set after upload
-        id_video_path="",  # Will be set after upload
-        status="pending"
-    )
-    db.add(kyc_session)
-    db.commit()
-    db.refresh(kyc_session)
+    # Process and verify selfie video
+    selfie_hmac_calc = hmac.new(secret, digestmod=hashlib.sha256)
+    selfie_sha256_calc = hashlib.sha256()
+    async with aiofiles.open(selfie_temp_path, 'wb') as f:
+        while chunk := await selfie.read(8192):
+            await f.write(chunk)
+            selfie_hmac_calc.update(chunk)
+            selfie_sha256_calc.update(chunk)
+
+    expected_selfie_hmac = base64.b64encode(selfie_hmac_calc.digest()).decode()
+    expected_selfie_sha256 = base64.b64encode(selfie_sha256_calc.digest()).decode()
+
+    if selfie_hmac != expected_selfie_hmac or selfie_sha256 != expected_selfie_sha256:
+        os.remove(selfie_temp_path)
+        raise HTTPException(status_code=400, detail="Selfie integrity verification failed")
+
+    # Process and verify ID video
+    id_hmac_calc = hmac.new(secret, digestmod=hashlib.sha256)
+    id_sha256_calc = hashlib.sha256()
+    async with aiofiles.open(id_temp_path, 'wb') as f:
+        while chunk := await id_video.read(8192):
+            await f.write(chunk)
+            id_hmac_calc.update(chunk)
+            id_sha256_calc.update(chunk)
+
+    expected_id_hmac = base64.b64encode(id_hmac_calc.digest()).decode()
+    expected_id_sha256 = base64.b64encode(id_sha256_calc.digest()).decode()
+
+    if id_hmac != expected_id_hmac or id_sha256 != expected_id_sha256:
+        os.remove(selfie_temp_path)
+        os.remove(id_temp_path)
+        raise HTTPException(status_code=400, detail="ID video integrity verification failed")
 
     try:
-        # Upload selfie
-        selfie_temp_path = f"/tmp/{session_id}_selfie_{selfie.filename}"
-        async with aiofiles.open(selfie_temp_path, 'wb') as f:
-            await f.write(selfie_content)
+        # Create KYC session in database
+        kyc_session = KycSession(
+            session_id=session_id,
+            selfie_video_path="",  # Will be set after upload
+            id_video_path="",  # Will be set after upload
+            status="pending"
+        )
+        db.add(kyc_session)
+        db.commit()
+        db.refresh(kyc_session)
 
+        # Upload selfie
         selfie_object_name = f"{session_id}/selfie_{selfie.filename}"
         minio_client.fput_object(
             BUCKET_NAME,
@@ -161,10 +172,6 @@ async def ingest_videos(
         )
 
         # Upload ID video
-        id_temp_path = f"/tmp/{session_id}_id_{id_video.filename}"
-        async with aiofiles.open(id_temp_path, 'wb') as f:
-            await f.write(id_content)
-
         id_object_name = f"{session_id}/id_{id_video.filename}"
         minio_client.fput_object(
             BUCKET_NAME,
@@ -185,10 +192,6 @@ async def ingest_videos(
         }
         redis_client.lpush("kyc_processing_queue", json.dumps(task_data))
 
-        # Clean up temp files
-        os.remove(selfie_temp_path)
-        os.remove(id_temp_path)
-
         # Create JWT token
         token_payload = {
             "session_id": session_id,
@@ -206,13 +209,13 @@ async def ingest_videos(
                 "message": "Videos uploaded successfully and queued for processing"
             }
         )
-
-    except S3Error as e:
-        db.rollback()
-        raise HTTPException(status_code=500, detail=f"Failed to upload videos: {str(e)}")
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+    finally:
+        # Clean up temp files
+        os.remove(selfie_temp_path)
+        os.remove(id_temp_path)
 
 @app.get("/status/{session_id}")
 async def get_processing_status(

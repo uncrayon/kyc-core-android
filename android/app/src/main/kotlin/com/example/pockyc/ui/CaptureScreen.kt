@@ -8,6 +8,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
+import android.Manifest
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -109,43 +112,62 @@ fun GuideScreen(message: String, viewModel: CaptureViewModel) {
 fun RecordingScreen(challenge: Challenge?, viewModel: CaptureViewModel) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
-
     val cameraManager = remember(context, lifecycleOwner) { CameraManager(context, lifecycleOwner, viewModel.precheckManager) }
 
+    var hasPermission by remember { mutableStateOf(false) }
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = { granted -> hasPermission = granted }
+    )
+
     LaunchedEffect(Unit) {
-        cameraManager.initializeCamera()
-        val outputFile = File(context.getExternalFilesDir(null), "video_${System.currentTimeMillis()}.mp4")
-        cameraManager.startRecording(outputFile)
+        launcher.launch(Manifest.permission.CAMERA)
     }
 
-    DisposableEffect(Unit) {
-        onDispose {
-            cameraManager.stopRecording()
-            cameraManager.release()
+    if (hasPermission) {
+        LaunchedEffect(Unit) {
+            cameraManager.initializeCamera()
+            val outputFile = File(context.getExternalFilesDir(null), "video_${System.currentTimeMillis()}.mp4")
+            cameraManager.startRecording(outputFile)
         }
-    }
 
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Top,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        CameraPreview(modifier = Modifier.weight(1f), cameraManager = cameraManager)
-        Spacer(modifier = Modifier.height(16.dp))
-        if (challenge != null) {
-            val prompt = when (challenge) {
-                Challenge.BLINK -> stringResource(R.string.blink_prompt)
-                Challenge.HEAD_TURN -> stringResource(R.string.head_turn)
+        DisposableEffect(Unit) {
+            onDispose {
+                cameraManager.stopRecording()
+                cameraManager.release()
             }
-            Text(text = prompt)
         }
-        Text(stringResource(R.string.recording))
-        Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = {
-            cameraManager.stopRecording()
-            viewModel.nextState()
-        }) {
-            Text(stringResource(R.string.next))
+
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Top,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            CameraPreview(modifier = Modifier.weight(1f), cameraManager = cameraManager)
+            Spacer(modifier = Modifier.height(16.dp))
+            if (challenge != null) {
+                val prompt = when (challenge) {
+                    Challenge.BLINK -> stringResource(R.string.blink_prompt)
+                    Challenge.HEAD_TURN -> stringResource(R.string.head_turn)
+                }
+                Text(text = prompt)
+            }
+            Text(stringResource(R.string.recording))
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(onClick = {
+                cameraManager.stopRecording()
+                viewModel.nextState()
+            }) {
+                Text(stringResource(R.string.next))
+            }
+        }
+    } else {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(stringResource(R.string.camera_permission_denied))
         }
     }
 }

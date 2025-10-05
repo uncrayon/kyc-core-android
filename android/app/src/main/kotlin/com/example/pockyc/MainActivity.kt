@@ -16,6 +16,7 @@ class MainActivity : ComponentActivity() {
     companion object {
         init {
             System.loadLibrary("opencv_java4")
+            System.loadLibrary("mediapipe_tasks_vision_jni")
         }
     }
 

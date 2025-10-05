@@ -10,13 +10,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.pockyc.ui.CaptureScreen
+import nu.pattern.OpenCV
 
 class MainActivity : ComponentActivity() {
 
     companion object {
         init {
             System.loadLibrary("mediapipe_tasks_vision_jni")
-            System.loadLibrary("opencv_java4")
+            OpenCV.loadShared()
         }
     }
 

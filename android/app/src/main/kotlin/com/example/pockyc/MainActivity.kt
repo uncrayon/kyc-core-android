@@ -12,6 +12,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.example.pockyc.ui.CaptureScreen
 
 class MainActivity : ComponentActivity() {
+
+    companion object {
+        init {
+            System.loadLibrary("opencv_java4")
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val devPanelEnabled = intent.getBooleanExtra("dev_panel", false)
